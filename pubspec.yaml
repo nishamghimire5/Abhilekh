@@ -1,12 +1,13 @@
 name: digital_humanities
 description: A new Flutter project.
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
-  sdk: '>=3.1.2 <4.0.0'
+  sdk: ">=3.1.2 <4.0.0"
 
 dependencies:
+  circular_bottom_navigation: ^2.3.0
   camera: ^0.10.5+4
   flutter:
     sdk: flutter
