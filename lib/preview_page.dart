@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 // import 'package:http/http.dart' as http;
-// import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as path;
 import 'package:http_parser/http_parser.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart' as syspaths;
@@ -39,13 +39,24 @@ class PreviewPageState extends State<PreviewPage> {
   }
 
   Future<void> uploadImageUsingDio(String imagePath) async {
-    var url = 'https://b099-43-231-208-200.ngrok.io/otsu_process';
-    var dio = Dio();
+    var url = 'https://f36e-101-251-6-102.ngrok-free.app/blu_process';
+
+    var dio = Dio(BaseOptions(
+      connectTimeout: 5000,
+      receiveTimeout: 3000,
+    ));
 
     var file = File(imagePath);
+    if (!await file.exists()) {
+      print("File does not exist at path: $imagePath");
+      return;
+    }
+
+    String fileName = path.basename(file.path);
+
     var formData = FormData.fromMap({
       "balls": await MultipartFile.fromFile(file.path,
-          contentType: MediaType('image', 'png')),
+          filename: fileName, contentType: MediaType('image', 'png')),
     });
 
     try {
@@ -53,9 +64,8 @@ class PreviewPageState extends State<PreviewPage> {
 
       if (response.statusCode == 200) {
         print("Upload successful");
-        // Handle the response as needed
       } else {
-        print("Upload failed");
+        print("Upload failed with status: ${response.statusCode}");
       }
     } catch (e) {
       print("Exception occurred: $e");
