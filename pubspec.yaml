@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   dio: ^4.0.0
+  photo_manager: ^1.2.8
   image_picker: ^0.8.4+4
   http_parser: ^4.0.0
   open_file: ^3.2.1

@@ -1,5 +1,8 @@
+// ignore_for_file: avoid_print
+
 import 'package:camera/camera.dart';
 import 'package:digital_humanities/camera_page.dart';
+import 'package:digital_humanities/recents_page.dart';
 import 'package:flutter/material.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
@@ -25,15 +28,15 @@ class _HomePageState extends State<HomePage> {
         fontWeight: FontWeight.normal,
       ),
     ),
-    TabItem(
-      Icons.search,
-      "Search",
-      Colors.orange,
-      labelStyle: const TextStyle(
-        color: Colors.red,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
+    // TabItem(
+    //   Icons.search,
+    //   "Search",
+    //   Colors.orange,
+    //   labelStyle: const TextStyle(
+    //     color: Colors.red,
+    //     fontWeight: FontWeight.bold,
+    //   ),
+    // ),
     TabItem(
       Icons.history,
       "Recents",
@@ -78,7 +81,14 @@ class _HomePageState extends State<HomePage> {
       'Angelina',
       'Nilotpal',
     ];
-    if (selectedPos == 3) {
+    if (selectedPos == 1) {
+      // Assuming "Recents" is the second tab
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const RecentsPage()),
+      );
+    }
+    if (selectedPos == 2) {
       return FutureBuilder<List<CameraDescription>>(
         future: availableCameras(),
         builder: (BuildContext context,
@@ -170,7 +180,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          Container(
+          SizedBox(
             height: 90,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,

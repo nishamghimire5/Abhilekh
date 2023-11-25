@@ -141,7 +141,7 @@ class PreviewPageState extends State<PreviewPage> {
           file: tempFile.path,
           androidExistNotSave: false,
           name: imageName,
-          androidRelativePath: 'Pictures/$dirName',
+          androidRelativePath: dirName,
         );
         print("Image saved successfully");
       } catch (e) {
