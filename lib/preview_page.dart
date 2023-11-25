@@ -9,6 +9,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 // import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:saver_gallery/saver_gallery.dart';
 
@@ -24,6 +25,9 @@ class PreviewPage extends StatefulWidget {
 class PreviewPageState extends State<PreviewPage> {
   late XFile picture;
   XFile? outputPicture;
+  Future<void>? uploadTask1;
+  Future<void>? uploadTask2;
+  Future<void>? downloadTask;
 
   @override
   void initState() {
@@ -70,6 +74,7 @@ class PreviewPageState extends State<PreviewPage> {
             'Connection': 'keep-alive',
             'Accept': "image/jpeg",
           },
+          responseType: ResponseType.bytes,
         ),
         onSendProgress: (sent, total) {
           if (total != -1) {
@@ -88,51 +93,6 @@ class PreviewPageState extends State<PreviewPage> {
     }
   }
 
-  // Future<void> loadImage() async {
-  //   final imageName = path.basename(picture.path);
-  //   const url = 'http://10.0.2.2:5000/blu_process';
-  //   final dio = Dio();
-  //   final formData = FormData.fromMap({
-  //     'balls': await MultipartFile.fromFile(picture.path, filename: imageName),
-  //   });
-  //   final response = await dio.post(
-  //     url,
-  //     data: formData,
-  //     onReceiveProgress: (received, total) {
-  //       if (total != -1) {
-  //         print("${(received / total * 100).toStringAsFixed(0)}%");
-  //       }
-  //     },
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     final tempDir = await getTemporaryDirectory();
-  //     final tempPath = '${tempDir.path}/$imageName';
-  //     final tempFile = File(tempPath);
-  //     await tempFile.writeAsBytes(response.data);
-
-  //     final storagePermission = await Permission.storage.request();
-  //     if (!storagePermission.isGranted) return;
-
-  //     const dirName = 'Project';
-  //     try {
-  //       await SaverGallery.saveFile(
-  //         file: tempFile.path,
-  //         androidExistNotSave: false,
-  //         name: imageName,
-  //         androidRelativePath: 'Pictures/$dirName',
-  //       );
-  //       print("Image saved successfully");
-  //     } catch (e) {
-  //       print("Error saving image: $e");
-  //     } finally {
-  //       await tempFile.delete();
-  //     }
-  //   } else {
-  //     print("Failed to load image: ${response.statusCode}");
-  //   }
-  // }
-
   Future<void> loadImage() async {
     final imageName = path.basename(picture.path);
     const url = 'http://10.0.2.2:5000/blu_process';
@@ -148,6 +108,7 @@ class PreviewPageState extends State<PreviewPage> {
           'Connection': 'keep-alive',
           'Accept': "image/jpeg",
         },
+        responseType: ResponseType.bytes,
       ),
       onReceiveProgress: (received, total) {
         if (total != -1) {
@@ -160,13 +121,19 @@ class PreviewPageState extends State<PreviewPage> {
     print('Response data: ${response.data}');
 
     if (response.statusCode == 200) {
+      // Request storage permission
+      final storagePermission =
+          await Permission.manageExternalStorage.request();
+      if (!storagePermission.isGranted) {
+        print("Storage permission not granted");
+        Permission.manageExternalStorage.request();
+        return;
+      }
+
       final tempDir = await getTemporaryDirectory();
       final tempPath = '${tempDir.path}/$imageName';
       final tempFile = File(tempPath);
       await tempFile.writeAsBytes(response.data);
-
-      final storagePermission = await Permission.storage.request();
-      if (!storagePermission.isGranted) return;
 
       const dirName = 'Project';
       try {
@@ -202,9 +169,27 @@ class PreviewPageState extends State<PreviewPage> {
               children: <Widget>[
                 ElevatedButton(
                   onPressed: () async {
-                    await uploadImageUsingDio(picture.path);
+                    setState(() {
+                      uploadTask1 = uploadImageUsingDio(picture.path);
+                    });
                   },
                   child: const Text('Upload'),
+                ),
+                FutureBuilder<void>(
+                  future: uploadTask1,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<void> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      return const Icon(Icons.check);
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      return Container();
+                    }
+                  },
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -213,17 +198,53 @@ class PreviewPageState extends State<PreviewPage> {
                         await picker.pickImage(source: ImageSource.gallery);
 
                     if (pickedFile != null) {
-                      picture = XFile(pickedFile.path);
-                      await uploadImageUsingDio(picture.path);
+                      setState(() {
+                        picture = XFile(pickedFile.path);
+                        uploadTask2 = uploadImageUsingDio(picture.path);
+                      });
                     }
                   },
                   child: const Text('Pick Image'),
                 ),
+                FutureBuilder<void>(
+                  future: uploadTask2,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<void> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      return const Icon(Icons.check);
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      return Container();
+                    }
+                  },
+                ),
                 ElevatedButton(
                   onPressed: () async {
-                    await loadImage();
+                    setState(() {
+                      downloadTask = loadImage();
+                    });
                   },
-                  child: const Text('Show Output'),
+                  child: const Text('Save Output'),
+                ),
+                FutureBuilder<void>(
+                  future: downloadTask,
+                  builder:
+                      (BuildContext context, AsyncSnapshot<void> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.done) {
+                      return const Icon(Icons.check);
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else {
+                      return Container();
+                    }
+                  },
                 ),
               ],
             ),
