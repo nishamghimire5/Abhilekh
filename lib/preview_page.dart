@@ -23,6 +23,7 @@ class PreviewPage extends StatefulWidget {
 }
 
 class PreviewPageState extends State<PreviewPage> {
+  String dropdownValue = 'sauvola';
   late XFile picture;
   XFile? outputPicture;
   Future<void>? uploadTask1;
@@ -43,13 +44,13 @@ class PreviewPageState extends State<PreviewPage> {
     }
   }
 
-  Future<void> uploadImageUsingDio(String imagePath) async {
+  Future<void> uploadImageUsingDio(String endpoint, String imagePath) async {
     String url =
-        'http://10.0.2.2:5000/blu_process'; // Update this line with your Flask server URL and endpoint
+        'http://10.0.2.2:5000/$endpoint'; // Update this line with your Flask server URL and endpoint
 
     var dio = Dio(BaseOptions(
-      connectTimeout: 5000,
-      receiveTimeout: 3000,
+      connectTimeout: const Duration(milliseconds: 5000),
+      receiveTimeout: const Duration(milliseconds: 3000),
     ));
 
     var file = File(imagePath);
@@ -93,9 +94,9 @@ class PreviewPageState extends State<PreviewPage> {
     }
   }
 
-  Future<void> loadImage() async {
+  Future<void> loadImage(String endpoint) async {
     final imageName = path.basename(picture.path);
-    const url = 'http://10.0.2.2:5000/blu_process';
+    var url = 'http://10.0.2.2:5000/$endpoint';
     final dio = Dio();
     final formData = FormData.fromMap({
       'balls': await MultipartFile.fromFile(picture.path, filename: imageName),
@@ -108,7 +109,6 @@ class PreviewPageState extends State<PreviewPage> {
           'Connection': 'keep-alive',
           'Accept': "image/jpeg",
         },
-        responseType: ResponseType.bytes,
       ),
       onReceiveProgress: (received, total) {
         if (total != -1) {
@@ -117,23 +117,20 @@ class PreviewPageState extends State<PreviewPage> {
       },
     );
 
-    // Print the response data
-    print('Response data: ${response.data}');
-
     if (response.statusCode == 200) {
-      // Request storage permission
-      final storagePermission =
-          await Permission.manageExternalStorage.request();
-      if (!storagePermission.isGranted) {
-        print("Storage permission not granted");
-        Permission.manageExternalStorage.request();
-        return;
-      }
-
       final tempDir = await getTemporaryDirectory();
       final tempPath = '${tempDir.path}/$imageName';
       final tempFile = File(tempPath);
       await tempFile.writeAsBytes(response.data);
+
+      final storagePermission =
+          await Permission.manageExternalStorage.request();
+      if (!storagePermission.isGranted) {
+        print("Storage permission not granted");
+        return;
+      } else {
+        print("Storage Permission Granted");
+      }
 
       const dirName = 'Project';
       try {
@@ -141,7 +138,7 @@ class PreviewPageState extends State<PreviewPage> {
           file: tempFile.path,
           androidExistNotSave: false,
           name: imageName,
-          androidRelativePath: dirName,
+          androidRelativePath: 'Pictures/$dirName',
         );
         print("Image saved successfully");
       } catch (e) {
@@ -167,10 +164,54 @@ class PreviewPageState extends State<PreviewPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
+                DropdownButton<String>(
+                  value: dropdownValue,
+                  icon: const Icon(Icons.arrow_downward),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      dropdownValue = newValue ?? dropdownValue;
+                    });
+                  },
+                  items: <String>[
+                    'sauvola',
+                    'otsu',
+                    'feat',
+                    'niblack_m',
+                    'niblack_o'
+                  ].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
                 ElevatedButton(
                   onPressed: () async {
                     setState(() {
-                      uploadTask1 = uploadImageUsingDio(picture.path);
+                      switch (dropdownValue) {
+                        case 'sauvola':
+                          uploadTask1 = uploadImageUsingDio(
+                              'sauvola_process', picture.path);
+                          break;
+                        case 'otsu':
+                          uploadTask1 =
+                              uploadImageUsingDio('otsu_process', picture.path);
+                          break;
+                        case 'feat':
+                          uploadTask1 =
+                              uploadImageUsingDio('FEAT_process', picture.path);
+                          break;
+                        case 'niblack_m':
+                          uploadTask1 =
+                              uploadImageUsingDio('niblack_m', picture.path);
+                          break;
+                        case 'niblack_o':
+                          uploadTask1 =
+                              uploadImageUsingDio('niblack_o', picture.path);
+                          break;
+                        default:
+                          break;
+                      }
                     });
                   },
                   child: const Text('Upload'),
@@ -200,7 +241,30 @@ class PreviewPageState extends State<PreviewPage> {
                     if (pickedFile != null) {
                       setState(() {
                         picture = XFile(pickedFile.path);
-                        uploadTask2 = uploadImageUsingDio(picture.path);
+                        switch (dropdownValue) {
+                          case 'sauvola':
+                            uploadTask2 = uploadImageUsingDio(
+                                'sauvola_process', picture.path);
+                            break;
+                          case 'otsu':
+                            uploadTask2 = uploadImageUsingDio(
+                                'otsu_process', picture.path);
+                            break;
+                          case 'feat':
+                            uploadTask2 = uploadImageUsingDio(
+                                'FEAT_process', picture.path);
+                            break;
+                          case 'niblack_m':
+                            uploadTask2 =
+                                uploadImageUsingDio('niblack_m', picture.path);
+                            break;
+                          case 'niblack_o':
+                            uploadTask2 =
+                                uploadImageUsingDio('niblack_o', picture.path);
+                            break;
+                          default:
+                            break;
+                        }
                       });
                     }
                   },
@@ -222,32 +286,59 @@ class PreviewPageState extends State<PreviewPage> {
                     }
                   },
                 ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
                 ElevatedButton(
                   onPressed: () async {
                     setState(() {
-                      downloadTask = loadImage();
+                      switch (dropdownValue) {
+                        case 'sauvola':
+                          print(dropdownValue);
+                          downloadTask = loadImage('sauvola_process');
+                          break;
+                        case 'otsu':
+                          downloadTask = loadImage('otsu_process');
+                          break;
+                        case 'feat':
+                          downloadTask = loadImage('FEAT_process');
+                          break;
+                        case 'niblack_m':
+                          downloadTask = loadImage('niblack_m');
+                          break;
+                        case 'niblack_o':
+                          downloadTask = loadImage('niblack_o');
+                          break;
+                        default:
+                          break;
+                      }
                     });
                   },
                   child: const Text('Save Output'),
                 ),
-                FutureBuilder<void>(
-                  future: downloadTask,
-                  builder:
-                      (BuildContext context, AsyncSnapshot<void> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else if (snapshot.connectionState ==
-                        ConnectionState.done) {
-                      return const Icon(Icons.check);
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else {
-                      return Container();
-                    }
-                  },
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: FutureBuilder<void>(
+                    future: downloadTask,
+                    builder:
+                        (BuildContext context, AsyncSnapshot<void> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      } else if (snapshot.connectionState ==
+                          ConnectionState.done) {
+                        return const Icon(Icons.check);
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
                 ),
               ],
-            ),
+            )
           ],
         ),
       ),
