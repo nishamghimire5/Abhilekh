@@ -2,7 +2,6 @@
 
 import 'package:camera/camera.dart';
 import 'package:digital_humanities/camera_page.dart';
-import 'package:digital_humanities/recents_page.dart';
 import 'package:flutter/material.dart';
 import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
 import 'package:circular_bottom_navigation/tab_item.dart';
@@ -22,31 +21,22 @@ class _HomePageState extends State<HomePage> {
   List<TabItem> tabItems = List.of([
     TabItem(
       Icons.home,
+
       "Home",
-      Colors.blue,
+      const Color(0xFFB67E6F),
       labelStyle: const TextStyle(
         fontWeight: FontWeight.normal,
+          color: Color(0xFFFFFFFF)
       ),
-    ),
-    // TabItem(
-    //   Icons.search,
-    //   "Search",
-    //   Colors.orange,
-    //   labelStyle: const TextStyle(
-    //     color: Colors.red,
-    //     fontWeight: FontWeight.bold,
-    //   ),
-    // ),
-    TabItem(
-      Icons.history,
-      "Recents",
-      Colors.red,
-      circleStrokeColor: Colors.black,
     ),
     TabItem(
       Icons.camera,
       "Capture",
-      Colors.cyan,
+      const Color(0xFFB67E6F),
+      labelStyle: const TextStyle(
+          fontWeight: FontWeight.normal,
+          color: Color(0xFFFFFFFF)
+      ),
     ),
   ]);
 
@@ -74,21 +64,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget bodyContainer() {
-    List<String> files = [
-      'Nisham',
-      'ShreeGanesh',
-      'Saswat',
-      'Angelina',
-      'Nilotpal',
-    ];
+    List<String> files = [];
     if (selectedPos == 1) {
-      // Assuming "Recents" is the second tab
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const RecentsPage()),
-      );
-    }
-    if (selectedPos == 2) {
       return FutureBuilder<List<CameraDescription>>(
         future: availableCameras(),
         builder: (BuildContext context,
@@ -107,76 +84,44 @@ class _HomePageState extends State<HomePage> {
           begin: Alignment.bottomLeft,
           end: Alignment.topRight,
           colors: [
-            Colors.lightBlue[100]!,
-            Colors.purple[200]!,
-            Colors.lightBlue[100]!,
+            const Color(0xffe9dcc0),
+            Colors.brown[200]!,
+            const Color(0xffe9dcc0),
           ],
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 50),
-            child: Row(
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(left: 16),
-                  child: Text(
-                    'View Your',
+            child: Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/logo.png',
+                    width: 100,
+                    height: 100,),
+                  const Text(
+                    'Welcome to Abhilekh\nOpen the Camera to Begin',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.black87,
-                      fontSize: 19,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
+                      color: Colors.brown,
                     ),
                   ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    // handle settings button press
-                  },
-                  icon: const Icon(Icons.settings_outlined),
-                ),
-              ],
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, bottom: 22),
-            child: Text(
-              'Recents',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-          ),
-          // Add your recents widget here
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: '    Search here...',
-                suffixIcon: const Icon(
-                  Icons.search,
-                  color: Colors.blue,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  // borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16, bottom: 22, top: 22),
-            child: Text(
-              'Files',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      '"Abhilekh" is a pioneering project aimed at digitizing historical Newari stone inscriptions. It uses advanced image processing techniques, including a novel approach combining fuzzy entropy-based adaptive thresholding and Fast Fourier Transform, to convert these inscriptions into a machine-readable format. This initiative promises to enhance the preservation, study, and sharing of our cultural heritage.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.brown,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -190,7 +135,7 @@ class _HomePageState extends State<HomePage> {
                   width: 130,
                   height: 50,
                   margin:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
@@ -216,8 +161,7 @@ class _HomePageState extends State<HomePage> {
       controller: _navigationController,
       selectedPos: selectedPos,
       barHeight: bottomNavBarHeight,
-      // use either barBackgroundColor or barBackgroundGradient to have a gradient on bar background
-      barBackgroundColor: Colors.white,
+      barBackgroundColor: Colors.brown,
       backgroundBoxShadow: const <BoxShadow>[
         BoxShadow(color: Colors.black45, blurRadius: 10.0),
       ],
@@ -225,7 +169,6 @@ class _HomePageState extends State<HomePage> {
       selectedCallback: (int? selectedPos) {
         setState(() {
           this.selectedPos = selectedPos ?? 0;
-          // print(_navigationController.value);
         });
       },
     );
